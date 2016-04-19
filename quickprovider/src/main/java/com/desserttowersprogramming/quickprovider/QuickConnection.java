@@ -36,13 +36,7 @@ public class QuickConnection {
     }
 
     public QueryBuilder query(Uri uri) {
-        if (queryBuilder == null)
-            queryBuilder = new QueryBuilder();
-
-        if (!queryBuilder.open(context.getContentResolver(), uri))
-            throw new IllegalStateException("There can only be one query built at a time. Please make sure all queries are build before starting a new one");
-
-        return queryBuilder;
+        return new QueryBuilder(context.getContentResolver(), uri);
     }
 
     public void saveItem(Table item) {
@@ -56,11 +50,11 @@ public class QuickConnection {
         ArrayList<ContentProviderOperation> insertContentProviderOperations = new ArrayList<>();
         ArrayList<ContentProviderOperation> updateContentProviderOperations = new ArrayList<>();
 
-        for (Table item :items) {
+        for (Table item : items) {
             if (item.getId() == Table.NULL_ID)
                 insertContentProviderOperations.add(ContentProviderOperation.newInsert(item.getContentUri()).withValues(item.getContentValues()).build());
             else
-                updateContentProviderOperations.add(ContentProviderOperation.newUpdate(item.getContentUri()).withValues(item.getContentValues()).withSelection(Table.UUID, new String[] {Long.toString(item.getId())}).build());
+                updateContentProviderOperations.add(ContentProviderOperation.newUpdate(item.getContentUri()).withValues(item.getContentValues()).withSelection(Table.WHERE_ID_EQUALS, new String[]{Long.toString(item.getId())}).build());
         }
 
         try {
@@ -71,10 +65,6 @@ public class QuickConnection {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public void updateItem(Table item) {
-        context.getContentResolver().update(item.getContentUri(), item.getContentValues(), Table.WHERE_UUID_EQUALS, new String[]{item.getUuid()});
     }
 
     public static class QueryBuilder {
@@ -88,22 +78,12 @@ public class QuickConnection {
         private StringBuilder select;
         private String sortOrder;
 
-        private QueryBuilder() {
-            reset();
-        }
-
-        public boolean open(ContentResolver contentResolver, Uri uri) {
-            if (isOpen())
-                return false;
-
+        private QueryBuilder(ContentResolver contentResolver, Uri uri) {
             this.contentResolver = contentResolver;
             this.uri = uri;
 
-            return true;
-        }
-
-        private boolean isOpen() {
-            return contentResolver != null;
+            select = new StringBuilder();
+            selectValues = new ArrayList<>();
         }
 
         public QueryBuilder columns(String... columns) {
@@ -183,10 +163,14 @@ public class QuickConnection {
             String selectStatement = select == null ? null : select.toString();
             String[] selectValuesArray = selectValues == null ? null : selectValues.toArray(new String[selectValues.size()]);
 
-            Cursor cursor = contentResolver.query(uri, columns, selectStatement, selectValuesArray, sortOrder);
+            return contentResolver.query(uri, columns, selectStatement, selectValuesArray, sortOrder);
+        }
 
-            reset();
+        public Cursor getFirst() {
+            Cursor cursor = build();
 
+            if (cursor != null)
+                cursor.moveToFirst();
 
             return cursor;
         }
@@ -196,17 +180,6 @@ public class QuickConnection {
             String[] selectValuesArray = selectValues == null ? null : selectValues.toArray(new String[selectValues.size()]);
 
             contentResolver.delete(uri, selectStatement, selectValuesArray);
-
-            reset();
-        }
-
-        private void reset() {
-            contentResolver = null;
-            uri = null;
-            columns = null;
-            selectValues = new ArrayList<>();
-            select = new StringBuilder();
-            sortOrder = null;
         }
     }
 }

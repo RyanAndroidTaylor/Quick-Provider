@@ -7,7 +7,7 @@ public interface Table {
     String ID = "_id";
     String UUID = "UUID";
 
-    int NULL_ID = -1;
+    long NULL_ID = -1;
 
     long getId();
     String getUuid();

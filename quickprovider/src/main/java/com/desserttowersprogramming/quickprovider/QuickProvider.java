@@ -29,6 +29,8 @@ public abstract class QuickProvider extends ContentProvider {
 
     private SQLiteOpenHelper mDatabaseHelper;
 
+    private boolean mAllowForeignKeyConstrains;
+
     @Override
     public boolean onCreate() {
         uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -45,6 +47,10 @@ public abstract class QuickProvider extends ContentProvider {
             return mTypes.get(matchedType).mMimeType;
         else
             throw new IllegalArgumentException("There was not matching URI for " + uri);
+    }
+
+    protected void allowForeignKeyConstrains(boolean allowForeignKeyConstrains) {
+        mAllowForeignKeyConstrains = allowForeignKeyConstrains;
     }
 
     protected void addToUriMatcher(String path) {
@@ -69,6 +75,7 @@ public abstract class QuickProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         final SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
         final SQLiteDatabase databaseConnection = mDatabaseHelper.getWritableDatabase();
+        databaseConnection.setForeignKeyConstraintsEnabled(mAllowForeignKeyConstrains);
 
         MatchedUriData data = mTypes.get(uriMatcher.match(uri));
 
@@ -90,6 +97,7 @@ public abstract class QuickProvider extends ContentProvider {
     @Override
     public ContentProviderResult[] applyBatch(@NonNull ArrayList<ContentProviderOperation> operations) throws OperationApplicationException {
         final SQLiteDatabase databaseConnection = mDatabaseHelper.getWritableDatabase();
+        databaseConnection.setForeignKeyConstraintsEnabled(mAllowForeignKeyConstrains);
 
         try {
             databaseConnection.beginTransaction();
@@ -106,6 +114,7 @@ public abstract class QuickProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         final SQLiteDatabase databaseConnection = mDatabaseHelper.getWritableDatabase();
+        databaseConnection.setForeignKeyConstraintsEnabled(mAllowForeignKeyConstrains);
 
         try {
             databaseConnection.beginTransaction();
@@ -135,6 +144,7 @@ public abstract class QuickProvider extends ContentProvider {
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         final SQLiteDatabase databaseConnection = mDatabaseHelper.getWritableDatabase();
+        databaseConnection.setForeignKeyConstraintsEnabled(mAllowForeignKeyConstrains);
         int deleteCount = 0;
 
         try {
@@ -174,6 +184,7 @@ public abstract class QuickProvider extends ContentProvider {
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         SQLiteDatabase databaseConnection = mDatabaseHelper.getWritableDatabase();
+        databaseConnection.setForeignKeyConstraintsEnabled(mAllowForeignKeyConstrains);
         int updateCount = 0;
 
         try {

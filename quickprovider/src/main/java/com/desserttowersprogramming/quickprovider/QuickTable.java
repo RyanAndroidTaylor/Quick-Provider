@@ -159,17 +159,6 @@ public class QuickTable {
         return createString.toString();
     }
 
-    public String[] retrieveAllColumnsArray() {
-        if (!mClosed)
-            end();
-
-        return columns.toArray(new String[columns.size()]);
-    }
-
-    private void tableBuilderNotClose() {
-        throw new IllegalStateException("Table builder must be closed before opening a new one");
-    }
-
     public class ColumnBuilder {
         private String columnName;
 
