@@ -111,12 +111,12 @@ public class QuickTableTest extends BasicDatabaseTest {
     }
 
     @Test
-    public void columnForeignKeyConstraint() {
+    public void openWithForeignKeyConstraint() {
         quickConnection.saveItem(TestData.TEST_TABLE_ONE);
 
-        SubTable subTable = new SubTable("uuid", "bad foreign key");
+        SubTable badSubTable = new SubTable("bad foreign key", "Best data ever");
 
-        quickConnection.saveItem(subTable);
+        quickConnection.saveItem(badSubTable);
 
         Cursor cursor = quickConnection.query(SubTable.CONTENT_URI)
                 .allColumns()
@@ -124,11 +124,37 @@ public class QuickTableTest extends BasicDatabaseTest {
 
         assertFalse(cursor.moveToFirst());
 
-        subTable.setForeignKeyColumn(TestData.TEST_TABLE_ONE_UUID);
+        SubTable goodSubTable = new SubTable(TestData.TEST_TABLE_ONE_UUID, "Some data");
 
-        quickConnection.saveItem(subTable);
+        quickConnection.saveItem(goodSubTable);
 
         cursor = quickConnection.query(SubTable.CONTENT_URI)
+                .allColumns()
+                .build();
+
+        assertTrue(cursor.moveToFirst());
+    }
+
+    @Test
+    public void columnForeignKeyConstraint() {
+        quickConnection.saveItem(TestData.TEST_TABLE_ONE);
+        quickConnection.saveItem(new SubTable(TestData.TEST_TABLE_ONE_UUID, "Some data"));
+
+        SubTestTable badSubTestTable = new SubTestTable("uuid", "bad foreign key", "other bad foreign key", "here");
+
+        quickConnection.saveItem(badSubTestTable);
+
+        Cursor cursor = quickConnection.query(SubTestTable.CONTENT_URI)
+                .allColumns()
+                .build();
+
+        assertFalse(cursor.moveToFirst());
+
+        SubTestTable goodSubTestTable = new SubTestTable("new uuid", TestData.TEST_TABLE_ONE_UUID, TestData.TEST_TABLE_ONE_UUID, "there");
+
+        quickConnection.saveItem(goodSubTestTable);
+
+        cursor = quickConnection.query(SubTestTable.CONTENT_URI)
                 .allColumns()
                 .build();
 

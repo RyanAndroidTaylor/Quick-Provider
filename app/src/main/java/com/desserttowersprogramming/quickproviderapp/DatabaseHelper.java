@@ -19,6 +19,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(TestTable.CREATE);
         db.execSQL(SubTable.CREATE);
+        db.execSQL(SubTestTable.CREATE);
     }
 
     @Override

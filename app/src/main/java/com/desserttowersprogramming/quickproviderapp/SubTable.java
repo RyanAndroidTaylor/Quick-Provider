@@ -15,28 +15,28 @@ import android.net.Uri;
  */
 public class SubTable implements Table {
 
-    public static final String TABLE_NAME = QuickTable.getInstance().open("SubTable");
+    public static final String TABLE_NAME = QuickTable.getInstance().openWithUuidForeignKeyRestraint("SubTable", TestTable.TABLE_NAME);
 
-    public static final String FOREIGN_KEY_COLUMN = QuickTable.getInstance().buildTextColumn("ForeignKeyColumn").foreignKey(TestTable.TABLE_NAME, TestTable.UUID).build();
+    public static final String DATA = QuickTable.getInstance().buildTextColumn("Data").build();
 
     public static final String CREATE = QuickTable.getInstance().retrieveCreateString();
 
     public static final Uri CONTENT_URI = Uri.withAppendedPath(MainProvider.AUTHORITY_URI, TABLE_NAME);
 
     private long mId;
+    private String mData;
     private String mUuid;
-    private String mForeignKeyColumn;
 
-    public SubTable(String uuid, String foreignKeyColumn) {
+    public SubTable(String uuid, String data) {
         mId = NULL_ID;
         mUuid = uuid;
-        mForeignKeyColumn = foreignKeyColumn;
+        mData = data;
     }
 
     public SubTable(Cursor cursor) {
         mId = cursor.getLong(cursor.getColumnIndex(ID));
         mUuid = cursor.getString(cursor.getColumnIndex(UUID));
-        mForeignKeyColumn = cursor.getString(cursor.getColumnIndex(FOREIGN_KEY_COLUMN));
+        mData = cursor.getString(cursor.getColumnIndex(DATA));
     }
 
     @Override
@@ -49,12 +49,8 @@ public class SubTable implements Table {
         return mUuid;
     }
 
-    public String getForeignKeyColumn() {
-        return mForeignKeyColumn;
-    }
-
-    public void setForeignKeyColumn(String foreignKeyColumn) {
-        mForeignKeyColumn = foreignKeyColumn;
+    public String getData() {
+        return mData;
     }
 
     @Override
@@ -62,7 +58,7 @@ public class SubTable implements Table {
         ContentValues contentValues = new ContentValues();
 
         contentValues.put(UUID, mUuid);
-        contentValues.put(FOREIGN_KEY_COLUMN, mForeignKeyColumn);
+        contentValues.put(DATA, mData);
 
         return contentValues;
     }
